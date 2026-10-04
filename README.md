@@ -1,4 +1,4 @@
-# slidev-addon-russell
+# slidev-addons-russell
 
 A [Slidev](https://sli.dev) addon with the reusable Vue components shared by the
 decks in the [`russell-informatica`](https://github.com/russell-informatica)
@@ -28,7 +28,7 @@ the slides:
 ```md
 ---
 addons:
-  - slidev-addon-russell
+  - slidev-addons-russell
 ---
 ```
 
@@ -37,7 +37,7 @@ Or as an npm git dependency:
 ```json
 {
   "dependencies": {
-    "slidev-addon-russell": "github:russell-informatica/slidev-addons"
+    "slidev-addons-russell": "github:russell-informatica/slidev-addons"
   }
 }
 ```
