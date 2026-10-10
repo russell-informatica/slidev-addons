@@ -157,10 +157,9 @@ const active = computed<Pointer[]>(() => {
 </template>
 
 <style scoped>
+/* Default look — overridable through the --tracker-* variables. */
 .list-tracker {
-  --tracker-out-of-bounds: var(--color-error, #e5484d);
   position: relative;
-  padding: 0 0.75rem;
 }
 
 .list-tracker__lanes {
@@ -179,7 +178,7 @@ const active = computed<Pointer[]>(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--slidev-theme-primary);
+  color: var(--tracker-pointer-color, #7aa2ff);
   transform: translateX(-50%);
   transition: left 260ms ease, transform 260ms ease;
   white-space: nowrap;
@@ -195,11 +194,11 @@ const active = computed<Pointer[]>(() => {
 }
 
 .list-tracker__pointer--out {
-  color: var(--tracker-out-of-bounds);
+  color: var(--tracker-out-of-bounds, #e5484d);
 }
 
 .list-tracker__label {
-  font-family: var(--slidev-code-font-family);
+  font-family: var(--tracker-font, var(--slidev-code-font-family, ui-monospace, monospace));
   font-size: 0.82em;
   line-height: 1.2;
 }
@@ -233,20 +232,27 @@ const active = computed<Pointer[]>(() => {
 
 .list-tracker__cell {
   padding: 0.32rem 0.5rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--tracker-border, #e4e4e8);
   border-right: 0;
-  background: var(--c-surface);
-  color: var(--c-text-strong);
-  font-family: var(--slidev-code-font-family);
+  background: var(--tracker-cell-bg, #f7f7f9);
+  color: var(--tracker-cell-fg, #18181b);
+  font-family: var(--tracker-font, var(--slidev-code-font-family, ui-monospace, monospace));
   text-align: center;
 }
 
+.list-tracker__cell:first-child {
+  border-top-left-radius: var(--tracker-radius, 5px);
+  border-bottom-left-radius: var(--tracker-radius, 5px);
+}
+
 .list-tracker__cell:last-child {
-  border-right: 1px solid var(--c-border);
+  border-top-right-radius: var(--tracker-radius, 5px);
+  border-bottom-right-radius: var(--tracker-radius, 5px);
+  border-right: 1px solid var(--tracker-border, #e4e4e8);
 }
 
 .list-tracker__cell--active {
-  background: color-mix(in srgb, var(--slidev-theme-primary) 14%, transparent);
+  background: var(--tracker-active-bg, rgba(122, 162, 255, 0.14));
 }
 
 .list-tracker__ruler {
@@ -254,8 +260,8 @@ const active = computed<Pointer[]>(() => {
 }
 
 .list-tracker__index {
-  color: var(--c-text-muted);
-  font-family: var(--slidev-code-font-family);
+  color: var(--tracker-index-color, #6b6b73);
+  font-family: var(--tracker-font, var(--slidev-code-font-family, ui-monospace, monospace));
   font-size: 0.7em;
   text-align: center;
 }

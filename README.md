@@ -19,6 +19,7 @@ the slides:
 | --------- | ----- | ----------- |
 | `Badge`   | `accent`, `round` | Small uppercase pill label. |
 | `Counter` | `count` | Minimal -/+ counter. |
+| `ClicksSlider` | — | Click/step rail with a counter, for the interactive traces. |
 | `ListTracker` | `items`, `trackers`, `highlight`, `showIndexes`, `negative`, `markOutOfBounds` | Draws a list as a grid with small index labels and one moving pointer per tracked variable, driven by clicks. |
 
 ### `ListTracker`
@@ -64,8 +65,20 @@ Multiple pointers can be tracked at once, each on its own lane:
 />
 ```
 
-> The components are unstyled beyond their markup: `.badge` / `.badge-accent` /
-> `.badge-round` live in the [`slidev-theme-russell`](../theme) theme.
+## Theming
+
+Every component ships sensible default styles and exposes `--<component>-*` CSS
+variables for its appearance. It therefore renders out of the box with any
+Slidev theme, and adopts a theme's look when that theme sets the variables. The
+bundled [`slidev-theme-russell`](../theme) maps them to its tokens; override the
+same variables to retheme the components elsewhere.
+
+| Component | CSS variables |
+| --------- | ------------- |
+| `Badge` | `--badge-bg`, `--badge-color`, `--badge-border`, `--badge-radius`, `--badge-padding`, `--badge-font`, `--badge-font-size`, `--badge-font-weight`, `--badge-line-height`, `--badge-letter-spacing`, `--badge-accent-color`, `--badge-round-padding`, `--badge-round-font-size` |
+| `Counter` | `--counter-border`, `--counter-radius`, `--counter-padding`, `--counter-font`, `--counter-hover-bg` |
+| `ClicksSlider` | `--clicks-slider-accent`, `--clicks-slider-track`, `--clicks-slider-radius`, `--clicks-slider-font` |
+| `ListTracker` | `--tracker-border`, `--tracker-cell-bg`, `--tracker-cell-fg`, `--tracker-radius`, `--tracker-font`, `--tracker-index-color`, `--tracker-pointer-color`, `--tracker-active-bg`, `--tracker-out-of-bounds` |
 
 ## Usage
 
