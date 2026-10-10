@@ -19,7 +19,7 @@ the slides:
 | --------- | ----- | ----------- |
 | `Badge`   | `accent`, `round` | Small uppercase pill label. |
 | `Counter` | `count` | Minimal -/+ counter. |
-| `ListTracker` | `items`, `trackers`, `highlight`, `showIndexes` | Draws a list as a grid with small index labels and one moving pointer per tracked variable, driven by clicks. |
+| `ListTracker` | `items`, `trackers`, `highlight`, `showIndexes`, `negative`, `markOutOfBounds` | Draws a list as a grid with small index labels and one moving pointer per tracked variable, driven by clicks. |
 
 ### `ListTracker`
 
@@ -35,10 +35,24 @@ the current click. Values use the same absolute click numbers as `v-click`:
 ```
 
 At click `c` a pointer takes the value of the greatest key `<= c`; before the
-first key, or when the value is `null`, it is hidden. Indices `-1` and
-`items.length` place the pointer half a cell outside the grid, so loop-exit
-states (`i = -1`, `i = n`) stay visible. Multiple pointers can be tracked at
-once, each on its own lane:
+first key, or when the value is `null`, it is hidden. An out-of-bounds index
+(`>= items.length`, or negative) pins the pointer to the nearest grid edge,
+turns it red and flips the arrow towards that edge, so it never overflows the
+component. Set `:mark-out-of-bounds="false"` to keep edge pointers plain. The
+red can be themed with the `--tracker-out-of-bounds` CSS variable.
+
+Negative indices are out of bounds by default. Use `negative="wrap"` to read
+them as valid Python indices instead — the pointer is drawn at
+`items.length + index` while the label keeps the original value:
+
+```md
+<ListTracker
+  :items="[2, 4, 6, 8, 10]"
+  :trackers="{ i: { 1: -1 } }"
+  negative="wrap"
+/>
+```
+Multiple pointers can be tracked at once, each on its own lane:
 
 ```md
 <ListTracker

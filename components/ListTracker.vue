@@ -23,10 +23,20 @@ const props = withDefaults(
     highlight?: boolean
     /** Draw the small index ruler under the grid. */
     showIndexes?: boolean
+    /**
+     * How negative indices are interpreted:
+     * - `'invalid'`: out of bounds (pinned to the start edge, marked as such).
+     * - `'wrap'`: valid Python indexing, shown at `items.length + index`.
+     */
+    negative?: 'invalid' | 'wrap'
+    /** Mark out-of-bounds pointers in red and turn their arrow towards the edge. */
+    markOutOfBounds?: boolean
   }>(),
   {
     highlight: false,
     showIndexes: true,
+    negative: 'invalid',
+    markOutOfBounds: true,
   },
 )
 
@@ -38,7 +48,9 @@ const trackers = computed<Tracker[]>(() =>
     : Object.entries(props.trackers).map(([name, values]) => ({ name, values })),
 )
 
-function indexAt(values: Record<number, number | null>, click: number): number | null {
+const columns = computed(() => props.items.length)
+
+function rawIndexAt(values: Record<number, number | null>, click: number): number | null {
   let bestKey = -Infinity
   let index: number | null = null
   for (const [key, value] of Object.entries(values)) {
@@ -51,33 +63,69 @@ function indexAt(values: Record<number, number | null>, click: number): number |
   return index
 }
 
-const active = computed(() =>
-  trackers.value.map(tracker => ({
-    ...tracker,
-    index: indexAt(tracker.values, clicks.value),
-  })),
-)
-
-const columns = computed(() => props.items.length)
-
-// Center of cell `index` as a percentage of the grid width. Indices `-1` and
-// `columns` land half a cell outside the grid, so loop-exit states stay visible.
-function leftOf(index: number) {
-  return ((index + 0.5) / columns.value) * 100
+interface Pointer {
+  name: string
+  color?: string
+  label: string
+  index: number
+  left: number
+  edge: 'start' | 'end' | null
+  out: boolean
 }
+
+const active = computed<Pointer[]>(() => {
+  const pointers: Pointer[] = []
+  for (const tracker of trackers.value) {
+    const raw = rawIndexAt(tracker.values, clicks.value)
+    if (raw === null)
+      continue
+
+    // Resolve Python-style negative indices when enabled.
+    const index = raw < 0 && props.negative === 'wrap' ? columns.value + raw : raw
+    const inRange = index >= 0 && index < columns.value
+
+    // Out-of-bounds pointers are pinned to the nearest grid edge and their
+    // label is anchored inwards, so nothing can overflow the component.
+    const edge = inRange ? null : index < 0 ? 'start' : 'end'
+    const left = inRange
+      ? ((index + 0.5) / columns.value) * 100
+      : edge === 'start' ? 0 : 100
+
+    pointers.push({
+      name: tracker.name,
+      color: tracker.color,
+      label: `${tracker.name}=${raw}`,
+      index,
+      left,
+      edge,
+      out: !inRange,
+    })
+  }
+  return pointers
+})
 </script>
 
 <template>
   <div class="list-tracker">
     <div class="list-tracker__lanes">
-      <div v-for="tracker in active" :key="tracker.name" class="list-tracker__lane">
+      <div v-for="pointer in active" :key="pointer.name" class="list-tracker__lane">
         <div
-          v-if="tracker.index !== null"
           class="list-tracker__pointer"
-          :style="{ left: `${leftOf(tracker.index)}%`, color: tracker.color }"
+          :class="{
+            'list-tracker__pointer--out': pointer.out && markOutOfBounds,
+            'list-tracker__pointer--start': pointer.edge === 'start',
+            'list-tracker__pointer--end': pointer.edge === 'end',
+          }"
+          :style="{ left: `${pointer.left}%`, color: pointer.color }"
         >
-          <span class="list-tracker__label">{{ tracker.name }}={{ tracker.index }}</span>
-          <span class="list-tracker__arrow" />
+          <span class="list-tracker__label">{{ pointer.label }}</span>
+          <span
+            class="list-tracker__arrow"
+            :class="{
+              'list-tracker__arrow--left': pointer.out && markOutOfBounds && pointer.edge === 'start',
+              'list-tracker__arrow--right': pointer.out && markOutOfBounds && pointer.edge === 'end',
+            }"
+          />
         </div>
       </div>
     </div>
@@ -110,6 +158,7 @@ function leftOf(index: number) {
 
 <style scoped>
 .list-tracker {
+  --tracker-out-of-bounds: var(--color-error, #e5484d);
   position: relative;
   padding: 0 0.75rem;
 }
@@ -132,8 +181,21 @@ function leftOf(index: number) {
   align-items: center;
   color: var(--slidev-theme-primary);
   transform: translateX(-50%);
-  transition: left 260ms ease;
+  transition: left 260ms ease, transform 260ms ease;
   white-space: nowrap;
+}
+
+/* Edge pointers anchor inwards so the label never leaves the component. */
+.list-tracker__pointer--start {
+  transform: translateX(0);
+}
+
+.list-tracker__pointer--end {
+  transform: translateX(-100%);
+}
+
+.list-tracker__pointer--out {
+  color: var(--tracker-out-of-bounds);
 }
 
 .list-tracker__label {
@@ -149,6 +211,20 @@ function leftOf(index: number) {
   border-left: 0.4rem solid transparent;
   border-right: 0.4rem solid transparent;
   border-top: 0.5rem solid currentColor;
+}
+
+.list-tracker__arrow--left {
+  border-left: 0;
+  border-right: 0.5rem solid currentColor;
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+}
+
+.list-tracker__arrow--right {
+  border-right: 0;
+  border-left: 0.5rem solid currentColor;
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
 }
 
 .list-tracker__grid {
