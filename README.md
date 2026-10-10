@@ -78,7 +78,7 @@ same variables to retheme the components elsewhere.
 | `Badge` | `--badge-bg`, `--badge-color`, `--badge-border`, `--badge-radius`, `--badge-padding`, `--badge-font`, `--badge-font-size`, `--badge-font-weight`, `--badge-line-height`, `--badge-letter-spacing`, `--badge-accent-color`, `--badge-round-padding`, `--badge-round-font-size` |
 | `Counter` | `--counter-border`, `--counter-radius`, `--counter-padding`, `--counter-font`, `--counter-hover-bg` |
 | `ClicksSlider` | `--clicks-slider-accent`, `--clicks-slider-track`, `--clicks-slider-radius`, `--clicks-slider-font` |
-| `ListTracker` | `--tracker-border`, `--tracker-cell-bg`, `--tracker-cell-fg`, `--tracker-radius`, `--tracker-font`, `--tracker-index-color`, `--tracker-pointer-color`, `--tracker-active-bg`, `--tracker-out-of-bounds` |
+| `ListTracker` | `--tracker-border`, `--tracker-cell-bg`, `--tracker-cell-fg`, `--tracker-radius`, `--tracker-font`, `--tracker-index-color`, `--tracker-pointer-color`, `--tracker-active-bg`, `--tracker-out-of-bounds`, `--tracker-lane-height`, `--tracker-transition` |
 
 ## Usage
 

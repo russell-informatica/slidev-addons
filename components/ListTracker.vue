@@ -67,18 +67,28 @@ interface Pointer {
   name: string
   color?: string
   label: string
-  index: number
+  index: number | null
   left: number
   edge: 'start' | 'end' | null
   out: boolean
 }
 
-const active = computed<Pointer[]>(() => {
-  const pointers: Pointer[] = []
-  for (const tracker of trackers.value) {
+// One lane per tracker, always rendered, so the lane height can animate between
+// hidden (0) and visible instead of making the grid jump when a pointer appears.
+const pointers = computed<Pointer[]>(() =>
+  trackers.value.map((tracker) => {
     const raw = rawIndexAt(tracker.values, clicks.value)
-    if (raw === null)
-      continue
+    if (raw === null) {
+      return {
+        name: tracker.name,
+        color: tracker.color,
+        label: '',
+        index: null,
+        left: 0,
+        edge: null,
+        out: false,
+      }
+    }
 
     // Resolve Python-style negative indices when enabled.
     const index = raw < 0 && props.negative === 'wrap' ? columns.value + raw : raw
@@ -91,7 +101,7 @@ const active = computed<Pointer[]>(() => {
       ? ((index + 0.5) / columns.value) * 100
       : edge === 'start' ? 0 : 100
 
-    pointers.push({
+    return {
       name: tracker.name,
       color: tracker.color,
       label: `${tracker.name}=${raw}`,
@@ -99,17 +109,22 @@ const active = computed<Pointer[]>(() => {
       left,
       edge,
       out: !inRange,
-    })
-  }
-  return pointers
-})
+    }
+  }),
+)
 </script>
 
 <template>
   <div class="list-tracker">
     <div class="list-tracker__lanes">
-      <div v-for="pointer in active" :key="pointer.name" class="list-tracker__lane">
+      <div
+        v-for="pointer in pointers"
+        :key="pointer.name"
+        class="list-tracker__lane"
+        :class="{ 'list-tracker__lane--visible': pointer.index !== null }"
+      >
         <div
+          v-if="pointer.index !== null"
           class="list-tracker__pointer"
           :class="{
             'list-tracker__pointer--out': pointer.out && markOutOfBounds,
@@ -138,7 +153,7 @@ const active = computed<Pointer[]>(() => {
         v-for="(item, index) in items"
         :key="index"
         class="list-tracker__cell"
-        :class="{ 'list-tracker__cell--active': highlight && active.some(t => t.index === index) }"
+        :class="{ 'list-tracker__cell--active': highlight && pointers.some(t => t.index === index) }"
       >
         {{ item }}
       </div>
@@ -169,7 +184,13 @@ const active = computed<Pointer[]>(() => {
 
 .list-tracker__lane {
   position: relative;
-  height: 2.1rem;
+  height: 0;
+  overflow: hidden;
+  transition: height var(--tracker-transition, 220ms) ease;
+}
+
+.list-tracker__lane--visible {
+  height: var(--tracker-lane-height, 2.1rem);
 }
 
 .list-tracker__pointer {
@@ -267,7 +288,8 @@ const active = computed<Pointer[]>(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .list-tracker__pointer {
+  .list-tracker__pointer,
+  .list-tracker__lane {
     transition: none;
   }
 }
